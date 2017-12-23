@@ -24,12 +24,12 @@ You must tell async-method which queuing system ("sidekiq" or "resque") you use 
 ERROR_MESSAGE
             raise StandardError.new(error_message)
           end
-          if AsyncMethod.queue_jobs_with == "sidekiq" && !Module.const_defined?("Sidekiq")
+          if AsyncMethod.queue_jobs_with.to_s == "sidekiq" && !Module.const_defined?("Sidekiq")
             error_message = <<-ERROR_MESSAGE
 You must add the "sidekiq" gem before the "async-method" gem in your Gemfile
 ERROR_MESSAGE
             raise StandardError.new(error_message)
-          elsif AsyncMethod.queue_jobs_with == "resque" && !Module.const_defined?("Resque")
+          elsif AsyncMethod.queue_jobs_with.to_s == "resque" && !Module.const_defined?("Resque")
             error_message = <<-ERROR_MESSAGE
 You must add the "resque" gem before the "async-method" gem in your Gemfile
 ERROR_MESSAGE
