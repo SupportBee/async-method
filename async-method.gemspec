@@ -8,9 +8,11 @@ Gem::Specification.new do |s|
   s.email = "nisanth074@gmail.com"
   s.homepage = "http://github.com/SupportBee/async-method"
 
-  s.add_dependency 'resque'
-  s.add_dependency 'sidekiq'
   s.add_dependency 'activesupport'
 
+  s.add_development_dependency 'resque'
+  s.add_development_dependency 'sidekiq'
   s.add_development_dependency 'sqlite3'
+  s.add_development_dependency 'test-unit'
+  s.add_development_dependency 'pry'
 end

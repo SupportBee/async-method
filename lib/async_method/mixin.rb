@@ -2,10 +2,11 @@ require "active_support/dependencies"
 require "async_method/worker"
 
 module AsyncMethod
+  class RecordNotPersistedError < StandardError; end
+
+  # Active record mixin
   module Mixin
     extend ActiveSupport::Concern
-
-    class NotPersistedError < StandardError; end
 
     module ClassMethods
       def async_method(method_name, options = {})
@@ -16,16 +17,35 @@ module AsyncMethod
         return if Rails.env.test?
 
         define_method "#{method_name}" do |*args|
-          raise NotPersistedError, "Methods can only be async'ed on persisted records (currently: #{inspect})" unless persisted?
+          raise AsyncMethod::RecordNotPersistedError, "Methods can only be async'ed on persisted records (currently: #{inspect})" unless persisted?
+          unless %w(sidekiq resque).include?(AsyncMethod.queue_jobs_with.to_s)
+            error_message = <<-ERROR_MESSAGE
+You must tell async-method which queuing system ("sidekiq" or "resque") you use in an initializer
+
+  # In config/initializers/async_method.rb
+  AsyncMethod.queue_jobs_with = "sidekiq"
+ERROR_MESSAGE
+            raise StandardError.new(error_message)
+          end
+          if AsyncMethod.queue_jobs_with == "sidekiq" && !Module.const_defined?("Sidekiq")
+            error_message = <<-ERROR_MESSAGE
+You must add the "sidekiq" gem before the "async-method" gem in your Gemfile
+ERROR_MESSAGE
+            raise StandardError.new(error_message)
+          elsif AsyncMethod.queue_jobs_with == "resque" && !Module.const_defined?("Resque")
+            error_message = <<-ERROR_MESSAGE
+You must add the "resque" gem before the "async-method" gem in your Gemfile
+ERROR_MESSAGE
+            raise StandardError.new(error_message)
+          end
 
           queue = options[:queue] || send(:class).name.underscore.pluralize
-
-          if AsyncMethod.queue_jobs_with.to_s == "sidekiq"
-            adapter = Sidekiq::Client
+          enqueuer = if AsyncMethod.queue_jobs_with.to_s == "sidekiq"
+            "Sidekiq::Client"
           else
-            adapter = Resque
+            "Resque"
           end
-          adapter.enqueue_to(
+          enqueuer.constantize.enqueue_to(
             queue,
             AsyncMethod::Worker,
             send(:class).name,
