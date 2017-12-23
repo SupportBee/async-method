@@ -13,9 +13,6 @@ module AsyncMethod
         # Allow tests to call sync_ methods ...
         alias_method :"sync_#{method_name}", method_name
 
-        # ... but don't actually make them asynchronous
-        return if Rails.env.test?
-
         define_method "#{method_name}" do |*args|
           raise AsyncMethod::RecordNotPersistedError, "Methods can only be async'ed on persisted records (currently: #{inspect})" unless persisted?
           unless %w(sidekiq resque).include?(AsyncMethod.queue_jobs_with.to_s)
