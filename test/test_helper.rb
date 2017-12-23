@@ -1,7 +1,8 @@
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "async_testing"
 
-require File.expand_path("../dummy/config/environment.rb",  __FILE__)
+require "pry"
+require File.expand_path("../rails_app_with_sidekiq/config/environment.rb",  __FILE__)
 require "rails/test_help"
 
 Rails.backtrace_cleaner.remove_silencers!

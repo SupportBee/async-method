@@ -3,7 +3,7 @@ require File.expand_path('../boot', __FILE__)
 require 'rails/all'
 
 Bundler.require
-require "resque-async-method"
+require "sidekiq"
 
 module Dummy
   class Application < Rails::Application
@@ -39,4 +39,3 @@ module Dummy
     config.assets.enabled = true
   end
 end
-

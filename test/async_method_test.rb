@@ -12,21 +12,18 @@ class AsyncMethodTest < ActiveSupport::TestCase
   test "enqueue jobs" do
     user = User.first
 
-    assert_equal true, user.long_method
+    sidekiq_job_id = user.long_method
+    assert_equal String, sidekiq_job_id.class
     assert_equal 'success!', user.sync_long_method
   end
 
   test "raise error if not persisted" do
     user = User.new
 
-    assert_raises(Resque::Plugins::Async::Method::NotPersistedError) do
+    assert_raises(AsyncMethod::RecordNotPersistedError) do
       user.long_method
     end
   end
 
-  test "lint" do
-    assert_nothing_raised do
-      Resque::Plugin.lint(Resque::Plugins::Async::Method)
-    end
-  end
+  # @todo Add test cases for Resque
 end
